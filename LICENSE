@@ -1,0 +1,39 @@
+The Dotfile License (DFL-1.0)
+
+Copyright (c) 2026 void01
+
+This license applies exclusively to dotfiles, configuration files, shell
+scripts, terminal themes, window manager configs, and other assorted
+digital hoarding intended for personal environment customization
+("the Dotfiles").
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of the Dotfiles, to use, copy, modify, merge, publish, distribute,
+sublicense, fork at 3am for no reason, and/or steal shamelessly, subject
+to the following conditions:
+
+1. You may copy this config wholesale and pretend you understand every
+   line of it. We both know you don't. Neither do I anymore.
+
+2. If you remove a keybind and everything breaks, that's between you
+   and your window manager now. I am not responsible for your suffering.
+
+3. Any attempt to use these dotfiles on a stock macOS Terminal.app will
+   be treated as a hostile act and is done entirely at your own risk.
+
+4. This license does NOT apply to actual software, programs, or anything
+   that isn't fundamentally just text files telling a program how to
+   look and behave. Nice try.
+
+5. If these dotfiles are ever forked into something that becomes
+   more popular than the original, the forker owes the original author
+   one (1) coffee, paid in either currency or vibes.
+
+THE DOTFILES ARE PROVIDED "AS IS, IT WORKS ON MY MACHINE", WITHOUT
+WARRANTY OF ANY KIND. THE AUTHOR MAKES NO GUARANTEES THAT ANY OF THIS
+WILL SURVIVE A `nixos-rebuild switch`, A DISTRO HOP, OR CONTACT WITH
+YOUR OWN TERRIBLE LIFE CHOICES. IN NO EVENT SHALL THE AUTHOR BE LIABLE
+FOR BROKEN SHELLS, MISSING SEMICOLONS, RICE THAT LOOKS WORSE THAN THE
+SCREENSHOT, OR EXISTENTIAL DREAD CAUSED BY READING YOUR OWN OLD CONFIGS.
+
+Use responsibly. Or don't. It's dotfiles.
