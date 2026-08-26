@@ -164,3 +164,4 @@ export XDG_DATA_DIRS="$HOME/.local/share/flatpak/exports/share:$XDG_DATA_DIRS"
 pkg() {
     fish -c 'pkg $argv' -- "$@"
 }
+export PATH="$HOME/.local/bin:$PATH"
