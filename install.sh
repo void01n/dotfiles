@@ -1,39 +1,30 @@
 #!/usr/bin/env bash
-# Based on the structure in image_Kd8MoR.png
+# Optimized installer matching a clean config/ subfolder layout.
 set -euo pipefail
-
-# Run this from inside the cloned dots repo, e.g.:
-#   git clone https://github.com/void01n/dots.git ~/dots
-#   cd ~/dots
-#   ./install.sh
-#
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Runtime deps actually invoked by the configs in this repo. Add to this list
-# whenever a config starts calling something new (e.g. sqlite for pkg's
-# --rorphs feature).
+# System dependencies for NixOS
 REQUIRED_PKGS=(
-    ghostty               # terminal emulator (config)
+    ghostty               # terminal emulator
     python3              # runs catppuccinize.py
-    fastfetch             # .zshrc: neofetch/lolfetch aliases
-    fortune               # .zshrc: loltsay
-    cowsay                # .zshrc: loltsay
-    cmatrix               # .zshrc: xcmatrix
-    eza                   # .zshrc: ls/ll/lt aliases
-    neovim                 # .zshrc: EDITOR/VISUAL, nano alias
-    zoxide                 # .zshrc: zoxide init
-    sqlite                 # pkg.fish: --rorphs companion db
-    nerd-fonts.jetbrains-mono  # ghostty font
-    fuzzel                # application launcher
-    niri                  # scrollable-tiling window manager
-    waybar                # status bar
-    zsh                   # default shell
+    fastfetch             # system info display
+    fortune               # terminal quotes
+    cowsay                # speech bubble display
+    cmatrix               # matrix screen effect
+    eza                   # modern ls replacement
+    neovim                 # text editor
+    zoxide                 # smart cd command
+    sqlite                 # pkg.fish metadata tracking
+    nerd-fonts.jetbrains-mono  # system terminal font
+    fuzzel                # wayland application launcher
+    niri                  # tiling window manager
+    waybar                # custom status bar
+    zsh                   # default login shell
 )
 
 backup() {
     local dest="$1"
-
     if [ -f "$dest" ] || [ -d "$dest" ]; then
         cp -r "$dest" "$dest.bak.$(date +%s)"
         echo "backed up: $dest"
@@ -42,12 +33,10 @@ backup() {
 
 install_file() {
     local src="$1" dest="$2"
-
     if [ ! -f "$src" ]; then
         echo "skip (not in repo): $src"
         return
     fi
-
     mkdir -p "$(dirname "$dest")"
     backup "$dest"
     cp "$src" "$dest"
@@ -56,12 +45,10 @@ install_file() {
 
 install_dir() {
     local src="$1" dest="$2"
-
     if [ ! -d "$src" ]; then
         echo "skip (not in repo): $src"
         return
     fi
-
     mkdir -p "$dest"
     backup "$dest"
     cp -r "$src/." "$dest/"
@@ -106,7 +93,6 @@ setup_nixos_pkg() {
     echo
     echo "Setting up declarative pkg..."
 
-    # Create packages.nix as a self-contained NixOS module.
     if [ ! -f "$pkgfile" ]; then
         sudo tee "$pkgfile" >/dev/null <<'EOF'
 { pkgs, ... }:
@@ -124,7 +110,6 @@ EOF
     echo "Declaring dotfiles runtime dependencies..."
     ensure_packages "$pkgfile" "${REQUIRED_PKGS[@]}"
 
-    # Wire packages.nix into configuration.nix if it isn't already imported.
     if grep -qF './packages.nix' "$config"; then
         echo "configuration.nix already imports packages.nix"
     else
@@ -150,10 +135,8 @@ EOF
                 }
             ' "$config" | sudo tee "$config.tmp" >/dev/null
             sudo mv "$config.tmp" "$config"
-
             echo "configured: configuration.nix imports packages.nix"
         else
-            # No imports block exists, so create one.
             sudo tee -a "$config" >/dev/null <<'EOF'
 
 imports = [
@@ -166,96 +149,38 @@ EOF
 
     echo
     echo "Testing NixOS configuration..."
-
     if sudo nixos-rebuild build; then
         echo "NixOS configuration is valid."
     else
         echo "WARNING: NixOS configuration failed to build."
-        echo "pkg was installed, but the configuration needs attention."
         return 1
     fi
 }
 
-install_shell_config() {
-    # zsh mode: apply .zshrc, and a zsh/ config dir if the repo has one.
-    local zshrc_src=""
-    if [ -f "$REPO_DIR/zsh/.zshrc" ]; then
-        zshrc_src="$REPO_DIR/zsh/.zshrc"
-    elif [ -f "$REPO_DIR/zsh/zshrc" ]; then
-        zshrc_src="$REPO_DIR/zsh/zshrc"
-    elif [ -f "$REPO_DIR/.zshrc" ]; then
-        zshrc_src="$REPO_DIR/.zshrc"
-    fi
-
-    if [ -n "$zshrc_src" ]; then
-        install_file "$zshrc_src" "$HOME/.zshrc"
-    else
-        echo "skip (not in repo): .zshrc"
-    fi
-
-    if [ -d "$REPO_DIR/zsh" ]; then
-        install_dir "$REPO_DIR/zsh" "$HOME/.config/zsh"
-    else
-        echo "skip (not in repo): zsh/"
-    fi
-
-    # Make zsh the login shell if it isn't already.
-    local zsh_path
-    zsh_path="$(command -v zsh || true)"
-    if [ -n "$zsh_path" ] && [ "${SHELL:-}" != "$zsh_path" ]; then
-        if chsh -s "$zsh_path" 2>/dev/null; then
-            echo "changed login shell to: $zsh_path"
-        else
-            echo "WARNING: could not chsh to $zsh_path (try: chsh -s $zsh_path)"
-        fi
-    fi
-}
-
-echo "Shell mode forced to: zsh"
+echo "Shell mode: Zsh"
 echo
 
-# Apply zsh configs
-install_shell_config
+# 1. Install Shell Configuration (Root-level .zshrc)
+install_file "$REPO_DIR/.zshrc" "$HOME/.zshrc"
 
-# Ghostty
-install_dir "$REPO_DIR/ghostty" "$HOME/.config/ghostty"
+# Enforce Zsh as login shell if needed
+local_zsh="$(command -v zsh || true)"
+if [ -n "$local_zsh" ] && [ "${SHELL:-}" != "$local_zsh" ]; then
+    chsh -s "$local_zsh" 2>/dev/null || echo "Run 'chsh -s $local_zsh' manually to switch your shell."
+fi
 
-# Fastfetch
-install_dir "$REPO_DIR/fastfetch" "$HOME/.config/fastfetch"
+# 2. Install App Configurations (from the config/ directory)
+install_dir "$REPO_DIR/config/ghostty"   "$HOME/.config/ghostty"
+install_dir "$REPO_DIR/config/fastfetch" "$HOME/.config/fastfetch"
+install_dir "$REPO_DIR/config/fuzzel"    "$HOME/.config/fuzzel"
+install_dir "$REPO_DIR/config/niri"      "$HOME/.config/niri"
+install_dir "$REPO_DIR/config/waybar"    "$HOME/.config/waybar"
 
-# Fuzzel
-install_dir "$REPO_DIR/fuzzel" "$HOME/.config/fuzzel"
+# 3. Python Helper Scripts
+install_file "$REPO_DIR/catppuccinize.py" "$HOME/.config/shell/catppuccinize.py"
 
-# Niri
-install_dir "$REPO_DIR/niri" "$HOME/.config/niri"
-
-# Waybar
-install_dir "$REPO_DIR/waybar" "$HOME/.config/waybar"
-
-# catppuccinize
-install_file \
-    "$REPO_DIR/catppuccinize.py" \
-    "$HOME/.config/shell/catppuccinize.py"
-
-# cosmic shortcuts
-install_file \
-    "$REPO_DIR/cosmic-shortcuts.ron" \
-    "$HOME/.config/cosmic/com.system76.CosmicSettings.Shortcuts/v1/custom"
-
-# NixOS declarative package manager + runtime deps
+# 4. Declarative package generation & validation
 setup_nixos_pkg
 
-# cosmic.ron and wallpaper are imported manually via cosmic-settings,
-# not copied here.
-echo "skip: cosmic.ron (import manually via cosmic-settings)"
-echo "skip: wallpaper (import manually via cosmic-settings)"
-
 echo
-echo "Done. Log out and back in for changes to take effect."
-echo
-echo "pkg is ready:"
-echo "  pkg install <package>"
-echo "  pkg remove <package> [--rorphs]"
-echo "  pkg list"
-echo "  pkg import"
-echo "  pkg orphan add|rm <anchor> <companion>"
+echo "Done! Please log out and log back in for changes to fully apply."
