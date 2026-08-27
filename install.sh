@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Optimized installer matching a clean config/ subfolder layout.
+# Complete installer tracking clean config/ folders and a root fish/ folder.
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -7,6 +7,7 @@ REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # System dependencies for NixOS
 REQUIRED_PKGS=(
     ghostty               # terminal emulator
+    fish                  # required for fish -c commands and pkg manager aliases
     python3              # runs catppuccinize.py
     fastfetch             # system info display
     fortune               # terminal quotes
@@ -20,7 +21,7 @@ REQUIRED_PKGS=(
     fuzzel                # wayland application launcher
     niri                  # tiling window manager
     waybar                # custom status bar
-    zsh                   # default login shell
+    zsh                   # primary interactive login shell
 )
 
 backup() {
@@ -157,30 +158,33 @@ EOF
     fi
 }
 
-echo "Shell mode: Zsh"
+echo "Shell Profile target: Zsh with Fish backend modules"
 echo
 
-# 1. Install Shell Configuration (Root-level .zshrc)
+# 1. Install Zsh Profile (Directly from Root-level .zshrc)
 install_file "$REPO_DIR/.zshrc" "$HOME/.zshrc"
 
-# Enforce Zsh as login shell if needed
+# Enforce Zsh as primary interactive login shell environment
 local_zsh="$(command -v zsh || true)"
 if [ -n "$local_zsh" ] && [ "${SHELL:-}" != "$local_zsh" ]; then
     chsh -s "$local_zsh" 2>/dev/null || echo "Run 'chsh -s $local_zsh' manually to switch your shell."
 fi
 
-# 2. Install App Configurations (from the config/ directory)
+# 2. Install Fish Functions (Deploys your root fish/ directory to ~/.config/fish)
+install_dir "$REPO_DIR/fish" "$HOME/.config/fish"
+
+# 3. Install App Configurations (from the config/ directory)
 install_dir "$REPO_DIR/config/ghostty"   "$HOME/.config/ghostty"
 install_dir "$REPO_DIR/config/fastfetch" "$HOME/.config/fastfetch"
 install_dir "$REPO_DIR/config/fuzzel"    "$HOME/.config/fuzzel"
 install_dir "$REPO_DIR/config/niri"      "$HOME/.config/niri"
 install_dir "$REPO_DIR/config/waybar"    "$HOME/.config/waybar"
 
-# 3. Python Helper Scripts
+# 4. Python Helper Scripts
 install_file "$REPO_DIR/catppuccinize.py" "$HOME/.config/shell/catppuccinize.py"
 
-# 4. Declarative package generation & validation
+# 5. Declarative package generation & validation
 setup_nixos_pkg
 
 echo
-echo "Done! Please log out and log back in for changes to fully apply."
+echo "Done! Fish packages and configurations have been successfully linked."
