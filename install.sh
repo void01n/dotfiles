@@ -1,47 +1,35 @@
 #!/usr/bin/env bash
+# Based on the structure in image_Kd8MoR.png
 set -euo pipefail
 
 # Run this from inside the cloned dots repo, e.g.:
 #   git clone https://github.com/void01n/dots.git ~/dots
 #   cd ~/dots
-#   ./install.sh [fish|zsh]
+#   ./install.sh
 #
-# Shell mode defaults to "fish". Pass "zsh" to install ~/.zshrc (and a
-# zsh/ config dir, if present in the repo) instead of the fish config.
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SHELL_MODE="${1:-fish}"
-
-case "$SHELL_MODE" in
-    fish|zsh) ;;
-    *)
-        echo "error: unknown shell mode '$SHELL_MODE' (expected 'fish' or 'zsh')" >&2
-        exit 1
-        ;;
-esac
 
 # Runtime deps actually invoked by the configs in this repo. Add to this list
 # whenever a config starts calling something new (e.g. sqlite for pkg's
 # --rorphs feature).
 REQUIRED_PKGS=(
-    alacritty            # terminal emulator (alacritty.toml)
+    ghostty               # terminal emulator (config)
     python3              # runs catppuccinize.py
-    fastfetch             # config.fish/.zshrc: neofetch/lolfetch aliases
-    fortune               # config.fish/.zshrc: loltsay
-    cowsay                # config.fish/.zshrc: loltsay
-    cmatrix               # config.fish/.zshrc: xcmatrix
-    eza                   # config.fish/.zshrc: ls/ll/lt aliases
-    neovim                 # config.fish/.zshrc: EDITOR/VISUAL, nano alias
-    zoxide                 # config.fish/.zshrc: zoxide init
+    fastfetch             # .zshrc: neofetch/lolfetch aliases
+    fortune               # .zshrc: loltsay
+    cowsay                # .zshrc: loltsay
+    cmatrix               # .zshrc: xcmatrix
+    eza                   # .zshrc: ls/ll/lt aliases
+    neovim                 # .zshrc: EDITOR/VISUAL, nano alias
+    zoxide                 # .zshrc: zoxide init
     sqlite                 # pkg.fish: --rorphs companion db
-    nerd-fonts.jetbrains-mono  # alacritty.toml font
+    nerd-fonts.jetbrains-mono  # ghostty font
+    fuzzel                # application launcher
+    niri                  # scrollable-tiling window manager
+    waybar                # status bar
+    zsh                   # default shell
 )
-
-if [ "$SHELL_MODE" = "fish" ]; then
-    REQUIRED_PKGS+=(fish)
-else
-    REQUIRED_PKGS+=(zsh)
-fi
 
 backup() {
     local dest="$1"
@@ -63,6 +51,20 @@ install_file() {
     mkdir -p "$(dirname "$dest")"
     backup "$dest"
     cp "$src" "$dest"
+    echo "installed: $dest"
+}
+
+install_dir() {
+    local src="$1" dest="$2"
+
+    if [ ! -d "$src" ]; then
+        echo "skip (not in repo): $src"
+        return
+    fi
+
+    mkdir -p "$dest"
+    backup "$dest"
+    cp -r "$src/." "$dest/"
     echo "installed: $dest"
 }
 
@@ -129,14 +131,6 @@ EOF
         backup "$config"
 
         if grep -qE '^[[:space:]]*imports[[:space:]]*=' "$config"; then
-            # Handles both styles:
-            #   imports = [ ./a.nix ./b.nix ];        (single line)
-            #   imports = [                            (multi line)
-            #     ./a.nix
-            #   ];
-            # awk tracks whether we're inside the imports [...] block and
-            # inserts ./packages.nix right before the closing "];" no
-            # matter which line that closer is on.
             sudo awk '
                 BEGIN { in_imports = 0; done = 0 }
                 {
@@ -183,22 +177,7 @@ EOF
 }
 
 install_shell_config() {
-    if [ "$SHELL_MODE" = "fish" ]; then
-        if [ -d "$REPO_DIR/fish" ]; then
-            mkdir -p "$HOME/.config/fish"
-            backup "$HOME/.config/fish"
-            cp -r "$REPO_DIR/fish/." "$HOME/.config/fish/"
-            echo "installed: ~/.config/fish"
-        else
-            echo "skip (not in repo): fish/"
-        fi
-        return
-    fi
-
     # zsh mode: apply .zshrc, and a zsh/ config dir if the repo has one.
-    # This does not touch ~/.config/fish, so fish stays installed
-    # side-by-side if it's already there; zsh just becomes what gets
-    # applied/activated by this run.
     local zshrc_src=""
     if [ -f "$REPO_DIR/zsh/.zshrc" ]; then
         zshrc_src="$REPO_DIR/zsh/.zshrc"
@@ -215,10 +194,7 @@ install_shell_config() {
     fi
 
     if [ -d "$REPO_DIR/zsh" ]; then
-        mkdir -p "$HOME/.config/zsh"
-        backup "$HOME/.config/zsh"
-        cp -r "$REPO_DIR/zsh/." "$HOME/.config/zsh/"
-        echo "installed: ~/.config/zsh"
+        install_dir "$REPO_DIR/zsh" "$HOME/.config/zsh"
     else
         echo "skip (not in repo): zsh/"
     fi
@@ -235,16 +211,26 @@ install_shell_config() {
     fi
 }
 
-echo "Shell mode: $SHELL_MODE"
+echo "Shell mode forced to: zsh"
 echo
 
-# fish or zsh config, depending on mode
+# Apply zsh configs
 install_shell_config
 
-# alacritty
-install_file \
-    "$REPO_DIR/alacritty.toml" \
-    "$HOME/.config/alacritty/alacritty.toml"
+# Ghostty
+install_dir "$REPO_DIR/ghostty" "$HOME/.config/ghostty"
+
+# Fastfetch
+install_dir "$REPO_DIR/fastfetch" "$HOME/.config/fastfetch"
+
+# Fuzzel
+install_dir "$REPO_DIR/fuzzel" "$HOME/.config/fuzzel"
+
+# Niri
+install_dir "$REPO_DIR/niri" "$HOME/.config/niri"
+
+# Waybar
+install_dir "$REPO_DIR/waybar" "$HOME/.config/waybar"
 
 # catppuccinize
 install_file \
@@ -265,7 +251,7 @@ echo "skip: cosmic.ron (import manually via cosmic-settings)"
 echo "skip: wallpaper (import manually via cosmic-settings)"
 
 echo
-echo "Done. Log out and back in (or restart cosmic-comp) for changes to take effect."
+echo "Done. Log out and back in for changes to take effect."
 echo
 echo "pkg is ready:"
 echo "  pkg install <package>"
