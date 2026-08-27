@@ -216,3 +216,4 @@ binds {
     XF86MonBrightnessDown allow-when-locked=true { spawn "brightnessctl" "set" "10%-"; }
 }
 spawn-at-startup "waybar"
+spawn-at-startup "xwayland-satellite"
