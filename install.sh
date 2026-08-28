@@ -23,6 +23,7 @@ REQUIRED_PKGS=(
     waybar                # custom status bar
     mako                  # notification daemon
     libnotify              # provides notify-send for testing notifications
+    swaybg                 # wallpaper setter for wlroots compositors
     zsh                   # primary interactive login shell
 )
 
@@ -192,7 +193,19 @@ if [ -d "$HOME/.config/waybar/scripts" ]; then
     echo "made executable: waybar scripts"
 fi
 
-# 6. Declarative package generation & validation
+# 6. Wallpaper setup
+mkdir -p "$HOME/Pictures/wallpaper"
+install_file "$REPO_DIR/nix-wallpaper-nineish-catppuccin-macchiato-alt.png" "$HOME/Pictures/wallpaper/nix.png"
+
+NIRI_CONFIG="$HOME/.config/niri/config.kdl"
+if [ -f "$NIRI_CONFIG" ] && ! grep -qF 'swaybg' "$NIRI_CONFIG"; then
+    echo 'spawn-at-startup "swaybg" "-i" "'"$HOME"'/Pictures/wallpaper/nix.png" "-m" "fill"' >> "$NIRI_CONFIG"
+    echo "configured: swaybg autostart in niri"
+else
+    echo "skip: swaybg already configured or niri config missing"
+fi
+
+# 7. Declarative package generation & validation
 setup_nixos_pkg
 
 echo
