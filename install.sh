@@ -24,6 +24,7 @@ REQUIRED_PKGS=(
     mako                  # notification daemon
     libnotify              # provides notify-send for testing notifications
     swaybg                 # wallpaper setter for wlroots compositors
+    networkmanagerapplet   # network manager applet for a systray icon
     zsh                   # primary interactive login shell
 )
 
