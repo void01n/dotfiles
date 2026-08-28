@@ -1,0 +1,28 @@
+{
+  "name": "main",
+  "cycle_order": [
+    "idle",
+    "workspace",
+    "window",
+    "audio",
+    "power",
+    "media",
+    "notify"
+  ],
+  "modules": {
+    "power": {
+      "low_threshold": 20
+    }
+  },
+  "anchor": [
+    "top",
+    "left",
+    "right"
+  ],
+  "exclusive_zone": true,
+  "margin": {
+    "top": 6
+  },
+  "width": 1920,
+  "height": 36
+}
