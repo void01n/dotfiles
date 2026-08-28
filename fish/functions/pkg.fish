@@ -80,8 +80,6 @@ function pkg --description "declarative-feeling pkg manager for packages.nix"
             set -l current (grep -E "^\s*[a-zA-Z0-9_.-]+\s*\$" $pkgfile | string trim)
             set -l to_remove $names
 
-            # rdeps: always prune runtime deps that only the removed names needed.
-            # a dep is only pruned if no *surviving* package's closure also needs it.
             for name in $names
                 for dep in (_pkg_reqs $name)
                     if contains -- $dep $current; and test "$dep" != "$name"
@@ -102,9 +100,6 @@ function pkg --description "declarative-feeling pkg manager for packages.nix"
                 end
             end
 
-            # rorphs: companion packages (e.g. hyprpaper alongside hyprland) that
-            # have no actual nix dependency link, so they're tracked in a small
-            # sqlite db instead. opt-in via --rorphs since it's not derivable.
             if test $rorphs = 1
                 for name in $names
                     for orphan in (_pkg_orphans $name $current)
@@ -179,11 +174,13 @@ function pkg --description "declarative-feeling pkg manager for packages.nix"
     if test "$cmd" = install -o "$cmd" = remove -o "$cmd" = import
         if sudo nixos-rebuild switch
             set -l msg "pkg $cmd $names"
+            sudo git -C /etc/nixos remote set-url origin git@gitlab.com:void01n/nix.git 2>/dev/null; \
+                or sudo git -C /etc/nixos remote add origin git@gitlab.com:void01n/nix.git
             sudo git -C /etc/nixos add -A
             if sudo git -C /etc/nixos commit -m "$msg" --allow-empty
                 echo "nix committed: $msg"
-                if sudo git -C /etc/nixos push
-                    echo "nix pushed to origin"
+                if sudo git -C /etc/nixos push origin
+                    echo "nix pushed to gitlab"
                 else
                     echo "nix commit ok, push failed"
                 end
