@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>v0wwa island</title>
+<link rel="stylesheet" href="bar.css">
+</head>
+<body>
+  <div class="island" id="island">
+    <div class="face face-idle active" data-face="idle">
+      <span class="dot"></span><span class="label" id="clock">--:--</span>
+    </div>
+    <div class="face face-workspace" data-face="workspace">
+      <div class="ws-track" id="wsTrack"></div>
+    </div>
+    <div class="face face-window" data-face="window">
+      <span class="dot" style="--accent:#f2f2f4"></span>
+      <div class="win-text">
+        <span class="label" id="winTitle">Desktop</span>
+        <span class="sub" id="winClass"></span>
+      </div>
+    </div>
+    <div class="face face-audio" data-face="audio">
+      <span class="dot" style="--accent:#6ee7ff"></span>
+      <span class="label" id="volLabel">--%</span>
+      <div class="vol-track"><div class="vol-fill" id="volFill" style="width:0%"></div></div>
+    </div>
+    <div class="face face-power" data-face="power">
+      <span class="dot" style="--accent:#4ade80"></span>
+      <span class="label" id="battLabel">--%</span>
+    </div>
+  </div>
+  <script src="dist/bar.js"></script>
+</body>
+</html>
