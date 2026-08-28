@@ -8,7 +8,7 @@ REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REQUIRED_PKGS=(
     ghostty               # terminal emulator
     fish                  # required for fish -c commands and pkg manager aliases
-    python3              # runs catppuccinize.py
+    python3              # runs catppuccinize.py, and hosts v0wwa/v0hv/v0ws-hotkeyd
     fastfetch             # system info display
     fortune               # terminal quotes
     cowsay                # speech bubble display
@@ -20,12 +20,20 @@ REQUIRED_PKGS=(
     nerd-fonts.jetbrains-mono  # system terminal font
     fuzzel                # wayland application launcher
     niri                  # tiling window manager
-    waybar                # custom status bar
     mako                  # notification daemon
     libnotify              # provides notify-send for testing notifications
     swaybg                 # wallpaper setter for wlroots compositors
     networkmanagerapplet   # network manager applet for a systray icon
     zsh                   # primary interactive login shell
+    nodejs                 # provides npm/npx; needed for esbuild toolchain
+    esbuild                # bundles v0wwa's src/*.ts -> dist/bar.js on launch
+    gtk4                    # v0wwa's window toolkit
+    gtk4-layer-shell         # v0wwa's layer-shell top-bar anchoring
+    webkitgtk_6_0            # v0wwa's WebView rendering engine (gi.require_version("WebKit","6.0"))
+    python3Packages.pygobject3   # GTK4/WebKit/Gtk4LayerShell GI bindings for python3
+    python3Packages.evdev         # v0ws-hotkeyd's keyboard event reading
+    # NOTE: verify the exact attr names above against your nixpkgs channel --
+    # webkitgtk_6_0 / gtk4-layer-shell naming has shifted across nixpkgs versions.
 )
 
 backup() {
@@ -182,19 +190,30 @@ install_dir "$REPO_DIR/config/ghostty"   "$HOME/.config/ghostty"
 install_dir "$REPO_DIR/config/fastfetch" "$HOME/.config/fastfetch"
 install_dir "$REPO_DIR/config/fuzzel"    "$HOME/.config/fuzzel"
 install_dir "$REPO_DIR/config/niri"      "$HOME/.config/niri"
-install_dir "$REPO_DIR/config/waybar"    "$HOME/.config/waybar"
 install_dir "$REPO_DIR/config/mako"      "$HOME/.config/mako"
+
+# 3b. Install v0wwa bar instance configs (main/second/final -- whatever's
+# tracked in the repo under config/v0wwa) to ~/.config/v0wwa
+install_dir "$REPO_DIR/config/v0wwa" "$HOME/.config/v0wwa"
 
 # 4. Python Helper Scripts
 install_file "$REPO_DIR/catppuccinize.py" "$HOME/.config/shell/catppuccinize.py"
 
-# 5. Ensure waybar helper scripts (e.g. mako-status.sh) are executable after install
-if [ -d "$HOME/.config/waybar/scripts" ]; then
-    chmod +x "$HOME/.config/waybar/scripts/"*.sh 2>/dev/null || true
-    echo "made executable: waybar scripts"
-fi
+# 4b. v0wwa -- host the bar as a real binary on PATH.
+# v0hv.py and v0ws-hotkeyd.py stay at ~/ (that's where they actually run
+# from); v0ws.py is the older one-shot script v0ws-hotkeyd.py replaced,
+# so it's intentionally not deployed here.
+mkdir -p "$HOME/.local/bin"
+install_file "$REPO_DIR/v0wwa.py" "$HOME/.local/bin/vowwa"
+chmod +x "$HOME/.local/bin/vowwa" 2>/dev/null || true
+echo "made executable: vowwa"
 
-# 6. Wallpaper setup
+install_file "$REPO_DIR/v0hv.py" "$HOME/v0hv.py"
+install_file "$REPO_DIR/v0ws-hotkeyd.py" "$HOME/v0ws-hotkeyd.py"
+chmod +x "$HOME/v0hv.py" "$HOME/v0ws-hotkeyd.py" 2>/dev/null || true
+echo "made executable: v0hv.py, v0ws-hotkeyd.py"
+
+# 5. Wallpaper setup
 mkdir -p "$HOME/Pictures/wallpaper"
 install_file "$REPO_DIR/nix-wallpaper-nineish-catppuccin-macchiato-alt.png" "$HOME/Pictures/wallpaper/nix.png"
 
@@ -206,7 +225,16 @@ else
     echo "skip: swaybg already configured or niri config missing"
 fi
 
-# 7. Declarative package generation & validation
+if [ -f "$NIRI_CONFIG" ] && ! grep -qF 'vowwa' "$NIRI_CONFIG"; then
+    echo 'spawn-at-startup "'"$HOME"'/.local/bin/vowwa" "'"$HOME"'/.config/v0wwa/main"' >> "$NIRI_CONFIG"
+    echo 'spawn-at-startup "python3" "'"$HOME"'/v0hv.py"' >> "$NIRI_CONFIG"
+    echo 'spawn-at-startup "python3" "'"$HOME"'/v0ws-hotkeyd.py"' >> "$NIRI_CONFIG"
+    echo "configured: vowwa + v0hv + v0ws-hotkeyd autostart in niri"
+else
+    echo "skip: vowwa already configured or niri config missing"
+fi
+
+# 6. Declarative package generation & validation
 setup_nixos_pkg
 
 echo
