@@ -1,0 +1,103 @@
+* {
+  border: none;
+  border-radius: 0;
+  font-family: "JetBrainsMono Nerd Font";
+  font-size: 13px;
+  min-height: 0;
+}
+window#waybar { background: transparent; }
+
+#left, #workspaces, #stats, #power {
+  background: rgba(36,39,58,0.6);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 999px;
+  margin: 5px 3px;
+  transition: background 0.22s ease;
+}
+#left:hover, #stats:hover, #power:hover {
+  background: rgba(46,50,72,0.85);
+}
+
+#left { padding: 0px 8px; }
+#clock { color: #cad3f5; font-weight: bold; margin-right: 6px; }
+#clock.date { color: #b7bdf8; margin-left: 6px; }
+
+#tray > .passive { opacity: 0.5; }
+#tray > .needs-attention { color: #ed8796; }
+
+#workspaces { padding: 3px 4px; }
+#workspaces button {
+  all: unset;
+  color: #494d64;
+  border-radius: 999px;
+  padding: 3px 11px;
+  margin: 0;
+  min-width: 0;
+  min-height: 0;
+  font-size: 15px;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+#workspaces button.active {
+  background: rgba(183,189,248,0.9);
+  color: #24273a;
+  font-weight: bold;
+}
+#workspaces button:hover {
+  background: rgba(58,62,86,0.85);
+  color: #edf0ff;
+}
+#workspaces button.active:hover {
+}
+
+#stats { padding: 0px 4px; }
+#battery, #pulseaudio, #network, #cpu, #memory { color: #b7bdf8; padding: 0 4px; }
+#pulseaudio.muted { color: #5b6078; }
+#network.disconnected { color: #ed8796; }
+#battery.warning { color: #eed49f; }
+#battery.critical { color: #ed8796; }
+#battery.charging { color: #a6da95; }
+#battery.charging.warning, #battery.charging.critical { color: #a6da95; }
+
+#power { padding: 0px 8px; }
+#custom-power, #custom-mako { color: #b7bdf8; padding: 0 4px; }
+
+#battery, #pulseaudio, #network, #cpu, #memory { margin: 0; }
+#custom-spacer { padding: 0 24px; }
+#left:hover, #stats:hover, #power:hover {
+  background: rgba(46,50,72,0.85);
+}
+#workspaces button.active {
+}
+#workspaces button.active:hover {
+}
+#left:hover, #stats:hover, #power:hover {
+}
+#workspaces button.active {
+}
+#workspaces button.active:hover {
+}
+
+#network.disconnected {
+}
+#battery.critical {
+}
+#left, #stats, #custom-power, #workspaces button.active {
+  border: none;
+}
+
+#clock, #clock.date, #battery, #pulseaudio, #network, #cpu, #memory, #custom-mako, #custom-power {
+  transition: font-size 0.15s ease, padding 0.15s ease, background 0.2s ease, color 0.2s ease;
+}
+#clock:hover, #clock.date:hover, #battery:hover, #pulseaudio:hover, #network:hover, #cpu:hover, #memory:hover, #custom-mako:hover, #custom-power:hover {
+  font-size: 15px;
+  padding: 0 6px;
+}
+#workspaces button {
+  transition: font-size 0.15s ease, background 0.2s ease, color 0.2s ease;
+}
+#workspaces button:hover {
+  font-size: 17px;
+}
+
+#custom-mako.active { color: #b7bdf8; }
+#custom-mako.dnd { color: #5b6078; }
