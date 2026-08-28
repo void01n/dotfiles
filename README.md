@@ -40,7 +40,7 @@ a minimal, fast, and highly customized nixos rice built around niri, ghostty, wa
 clone the repository and run the installer:
 
 ```bash
-git clone https://github.com ~/dots
+git clone https://gitlab.com/void01n/dotfiles ~/dots
 cd ~/dots
 
 chmod +x install.sh
