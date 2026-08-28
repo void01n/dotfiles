@@ -36,7 +36,7 @@
 clone the repository and run the installer:
 
 ```bash
-git clone https://github.com/void01n/dotfiles.git ~/dots
+git clone https://github.com/void01n/dotss.git ~/dots
 cd ~/dots
 
 chmod +x install.sh
