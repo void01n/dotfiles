@@ -21,6 +21,8 @@ REQUIRED_PKGS=(
     fuzzel                # wayland application launcher
     niri                  # tiling window manager
     waybar                # custom status bar
+    mako                  # notification daemon
+    libnotify              # provides notify-send for testing notifications
     zsh                   # primary interactive login shell
 )
 
@@ -179,11 +181,18 @@ install_dir "$REPO_DIR/config/fastfetch" "$HOME/.config/fastfetch"
 install_dir "$REPO_DIR/config/fuzzel"    "$HOME/.config/fuzzel"
 install_dir "$REPO_DIR/config/niri"      "$HOME/.config/niri"
 install_dir "$REPO_DIR/config/waybar"    "$HOME/.config/waybar"
+install_dir "$REPO_DIR/config/mako"      "$HOME/.config/mako"
 
 # 4. Python Helper Scripts
 install_file "$REPO_DIR/catppuccinize.py" "$HOME/.config/shell/catppuccinize.py"
 
-# 5. Declarative package generation & validation
+# 5. Ensure waybar helper scripts (e.g. mako-status.sh) are executable after install
+if [ -d "$HOME/.config/waybar/scripts" ]; then
+    chmod +x "$HOME/.config/waybar/scripts/"*.sh 2>/dev/null || true
+    echo "made executable: waybar scripts"
+fi
+
+# 6. Declarative package generation & validation
 setup_nixos_pkg
 
 echo
