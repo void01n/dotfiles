@@ -8,7 +8,7 @@ REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REQUIRED_PKGS=(
     ghostty               # terminal emulator
     fish                  # required for fish -c commands and pkg manager aliases
-    python3              # runs catppuccinize.py, and hosts v0wwa/v0hv/v0ws-hotkeyd
+    python3              # runs catppuccinize.py, and hosts v0wwa (which spawns v0hv/v0ws-hotkeyd itself)
     fastfetch             # system info display
     fortune               # terminal quotes
     cowsay                # speech bubble display
@@ -200,9 +200,10 @@ install_dir "$REPO_DIR/config/v0wwa" "$HOME/.config/v0wwa"
 install_file "$REPO_DIR/catppuccinize.py" "$HOME/.config/shell/catppuccinize.py"
 
 # 4b. v0wwa -- host the bar as a real binary on PATH.
-# v0hv.py and v0ws-hotkeyd.py stay at ~/ (that's where they actually run
-# from); v0ws.py is the older one-shot script v0ws-hotkeyd.py replaced,
-# so it's intentionally not deployed here.
+# v0hv.py and v0ws-hotkeyd.py stay at ~/ (vowwa spawns them itself from
+# there internally -- they don't need their own PATH entry or their own
+# spawn-at-startup line). v0ws.py is the older one-shot script
+# v0ws-hotkeyd.py replaced, so it's intentionally not deployed here.
 mkdir -p "$HOME/.local/bin"
 install_file "$REPO_DIR/v0wwa.py" "$HOME/.local/bin/vowwa"
 chmod +x "$HOME/.local/bin/vowwa" 2>/dev/null || true
@@ -226,10 +227,8 @@ else
 fi
 
 if [ -f "$NIRI_CONFIG" ] && ! grep -qF 'vowwa' "$NIRI_CONFIG"; then
-    echo 'spawn-at-startup "'"$HOME"'/.local/bin/vowwa" "'"$HOME"'/.config/v0wwa/main"' >> "$NIRI_CONFIG"
-    echo 'spawn-at-startup "python3" "'"$HOME"'/v0hv.py"' >> "$NIRI_CONFIG"
-    echo 'spawn-at-startup "python3" "'"$HOME"'/v0ws-hotkeyd.py"' >> "$NIRI_CONFIG"
-    echo "configured: vowwa + v0hv + v0ws-hotkeyd autostart in niri"
+    echo 'spawn-at-startup "vowwa"' >> "$NIRI_CONFIG"
+    echo "configured: vowwa autostart in niri"
 else
     echo "skip: vowwa already configured or niri config missing"
 fi
