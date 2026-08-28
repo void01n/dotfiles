@@ -8,7 +8,7 @@ a minimal, fast, and highly customized nixos rice built around niri, ghostty, wa
 🚀 application launcher — fuzzel for a lightweight native Wayland application picker.
 📊 status bar — waybar with custom telemetry, system information, and power controls.
 🐚 shell — Zsh as the primary interactive shell, enhanced with Oh My Zsh, autosuggestions, syntax highlighting, and Git integration.
-🐟 fish utilities — Fish remains available for package-management helpers and shell scripting.
+🐟 fish utilities — Fish handles package-management helpers and supporting shell functionality.
 🧭 navigation — zoxide for fast, intelligent directory jumping.
 🎨 theme — Catppuccin Macchiato across the desktop and shell environment.
 🖥️ system information — Fastfetch with custom configuration and themed output.
@@ -26,7 +26,9 @@ a minimal, fast, and highly customized nixos rice built around niri, ghostty, wa
 ├── fish/                # 🐟 fish modules and package helpers
 ├── .zshrc               # 🐚 interactive zsh configuration
 ├── catppuccinize.py     # 🎨 theme transformation utility
-└── install.sh           # ⚡ nixos deployment script
+├── install.sh           # ⚡ nixos deployment script
+├── img.png              # 🖼️ desktop screenshot
+└── LICENSE
 
 📥 installation
 
@@ -56,7 +58,7 @@ Zsh is the primary interactive shell and is configured through Oh My Zsh.
 the setup includes:
 
 robbyrussell as the base Oh My Zsh theme
-git integration
+Git integration
 zsh-autosuggestions for history-based suggestions
 zsh-syntax-highlighting for command feedback
 zoxide for intelligent directory navigation
@@ -71,7 +73,7 @@ void01n@nixos: ~/dots/
 >
 
 
-the prompt is dynamically colorized through the Catppuccin theme utility.
+the prompt is dynamically colorized through the custom Catppuccin utility.
 
 📜 history
 
@@ -96,16 +98,16 @@ this keeps frequently used commands immediately available while preserving the n
 
 🐟 fish + package management
 
-Zsh is used for interactive work, while Fish handles the package-management helper.
+Zsh is used for interactive work, while Fish provides the package-management helper.
 
-the .zshrc exposes the Fish helper through a small wrapper:
+the .zshrc exposes the Fish package function through a small wrapper:
 
 pkg() {
     fish -c 'pkg $argv' -- "$@"
 }
 
 
-this keeps package-related functionality modular inside the fish/ directory without requiring Fish to be the primary interactive shell.
+this allows package-related functionality to remain modular inside the fish/ directory without requiring Fish to be the primary interactive shell.
 
 🧰 aliases & utilities
 
@@ -167,7 +169,7 @@ shortens $HOME to ~
 displays the current user and hostname
 dynamically applies generated colors
 uses a two-line prompt layout
-integrates with Zsh's prompt expansion
+integrates with Zsh prompt expansion
 🧭 navigation
 
 zoxide is initialized directly inside Zsh:
@@ -182,16 +184,18 @@ this provides smarter directory navigation based on frequently visited locations
 the shell also configures common user-level environment variables:
 
 export NIXPKGS_ALLOW_UNFREE=1
+
 export EDITOR=nvim
 export VISUAL=nvim
 
 export XDG_DATA_DIRS="$HOME/.local/share/flatpak/exports/share:$XDG_DATA_DIRS"
+
 export PATH="$HOME/.local/bin:$PATH"
 
 
 Neovim is the preferred editor, local user binaries are added to $PATH, and Flatpak exports are included in $XDG_DATA_DIRS.
 
-❄️ nixos integration
+❄️ NixOS integration
 
 the environment is designed around NixOS rather than a conventional mutable Linux installation.
 
