@@ -199,20 +199,24 @@ install_dir "$REPO_DIR/config/v0wwa" "$HOME/.config/v0wwa"
 # 4. Python Helper Scripts
 install_file "$REPO_DIR/catppuccinize.py" "$HOME/.config/shell/catppuccinize.py"
 
-# 4b. v0wwa -- host the bar as a real binary on PATH.
-# v0hv.py and v0ws-hotkeyd.py stay at ~/ (vowwa spawns them itself from
-# there internally -- they don't need their own PATH entry or their own
-# spawn-at-startup line). v0ws.py is the older one-shot script
-# v0ws-hotkeyd.py replaced, so it's intentionally not deployed here.
-mkdir -p "$HOME/.local/bin"
+# 4b. v0wwa and friends -- install to ~/ and chmod +x
 install_file "$REPO_DIR/v0wwa.py" "$HOME/v0wwa.py"
-chmod +x "$HOME/.local/bin/vowwa" 2>/dev/null || true
-echo "made executable: vowwa"
+chmod +x "$HOME/v0wwa.py"
+echo "made executable: ~/v0wwa.py"
 
 install_file "$REPO_DIR/v0hv.py" "$HOME/v0hv.py"
+chmod +x "$HOME/v0hv.py"
+echo "made executable: ~/v0hv.py"
+
 install_file "$REPO_DIR/v0ws-hotkeyd.py" "$HOME/v0ws-hotkeyd.py"
-chmod +x "$HOME/v0hv.py" "$HOME/v0ws-hotkeyd.py" 2>/dev/null || true
-echo "made executable: v0hv.py, v0ws-hotkeyd.py"
+chmod +x "$HOME/v0ws-hotkeyd.py"
+echo "made executable: ~/v0ws-hotkeyd.py"
+
+# 4c. launch-v0wwa.sh -- sources full user env before spawning v0wwa,
+# needed because niri spawn-at-startup doesn't expand ~ or source profiles
+install_file "$REPO_DIR/launch-v0wwa.sh" "$HOME/launch-v0wwa.sh"
+chmod +x "$HOME/launch-v0wwa.sh"
+echo "made executable: ~/launch-v0wwa.sh"
 
 # 5. Wallpaper setup
 mkdir -p "$HOME/Pictures/wallpaper"
@@ -226,11 +230,11 @@ else
     echo "skip: swaybg already configured or niri config missing"
 fi
 
-if [ -f "$NIRI_CONFIG" ] && ! grep -qF 'vowwa' "$NIRI_CONFIG"; then
-    echo 'spawn-at-startup "vowwa"' >> "$NIRI_CONFIG"
-    echo "configured: vowwa autostart in niri"
+if [ -f "$NIRI_CONFIG" ] && ! grep -qF 'launch-v0wwa' "$NIRI_CONFIG"; then
+    echo 'spawn-at-startup "'"$HOME"'/launch-v0wwa.sh"' >> "$NIRI_CONFIG"
+    echo "configured: launch-v0wwa.sh autostart in niri"
 else
-    echo "skip: vowwa already configured or niri config missing"
+    echo "skip: launch-v0wwa already configured or niri config missing"
 fi
 
 # 6. Declarative package generation & validation
