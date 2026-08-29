@@ -205,7 +205,7 @@ install_file "$REPO_DIR/catppuccinize.py" "$HOME/.config/shell/catppuccinize.py"
 # spawn-at-startup line). v0ws.py is the older one-shot script
 # v0ws-hotkeyd.py replaced, so it's intentionally not deployed here.
 mkdir -p "$HOME/.local/bin"
-install_file "$REPO_DIR/v0wwa.py" "$HOME/.local/bin/vowwa"
+install_file "$REPO_DIR/v0wwa.py" "$HOME/v0wwa.py"
 chmod +x "$HOME/.local/bin/vowwa" 2>/dev/null || true
 echo "made executable: vowwa"
 
