@@ -25,7 +25,13 @@ REQUIRED_PKGS=(
     networkmanagerapplet
     zsh
     nodejs
+    wireguard-tools
+    wgcf
 )
+
+WGCF_DIR="$HOME/.config/wgcf"
+WGCF_PROFILE="$WGCF_DIR/wgcf-profile.conf"
+WGCF_ACCOUNT="$WGCF_DIR/wgcf-account.toml"
 
 backup() {
     local dest="$1"
@@ -149,10 +155,104 @@ setup_v0wwa_package() {
     sudo cp "$REPO_DIR/v0wwa.nix" /etc/nixos/v0wwa.nix
     echo "installed: /etc/nixos/v0wwa.nix"
 
-    if ! grep -qF './v0wwa.nix' "$config"; then
-        sudo sed -i '/imports = \[/a\  ./v0wwa.nix' "$config"
-        echo "configured: configuration.nix imports v0wwa.nix"
+    if grep -qF './v0wwa.nix' "$config"; then
+        echo "already configured: configuration.nix imports v0wwa.nix"
+        return
     fi
+
+    backup "$config"
+
+    if grep -qE '^[[:space:]]*imports[[:space:]]*=' "$config"; then
+        sudo awk '
+            BEGIN { in_imports = 0; done = 0 }
+            {
+                if (!done && !in_imports && $0 ~ /^[[:space:]]*imports[[:space:]]*=/) { in_imports = 1 }
+                if (!done && in_imports && $0 ~ /\];/) {
+                    idx = index($0, "];")
+                    pre = substr($0, 1, idx - 1)
+                    post = substr($0, idx)
+                    print pre "./v0wwa.nix " post
+                    in_imports = 0
+                    done = 1
+                    next
+                }
+                print
+            }
+        ' "$config" | sudo tee "$config.tmp" >/dev/null
+        sudo mv "$config.tmp" "$config"
+    else
+        sudo tee -a "$config" >/dev/null <<'EOF'
+
+imports = [
+  ./v0wwa.nix
+];
+EOF
+    fi
+
+    if grep -qF './v0wwa.nix' "$config"; then
+        echo "configured: configuration.nix imports v0wwa.nix"
+    else
+        echo "ERROR: failed to inject ./v0wwa.nix into $config -- add it manually" >&2
+    fi
+}
+
+setup_wgcf_profile() {
+    if ! command -v wgcf >/dev/null 2>&1; then
+        echo "skip: wgcf not on PATH yet (will be available after nixos-rebuild) -- rerun to register profile"
+        return
+    fi
+
+    mkdir -p "$WGCF_DIR"
+    (
+        cd "$WGCF_DIR"
+        if [ ! -f "$WGCF_ACCOUNT" ]; then
+            echo "registering new wgcf account..."
+            wgcf register --accept-tos
+        else
+            echo "wgcf account already registered: $WGCF_ACCOUNT"
+        fi
+
+        if [ ! -f "$WGCF_PROFILE" ]; then
+            echo "generating WireGuard profile..."
+            wgcf generate
+        else
+            echo "profile already exists: $WGCF_PROFILE"
+        fi
+    )
+}
+
+install_cfwrp_function() {
+    local fish_func="$HOME/.config/fish/functions/cfwrp.fish"
+    mkdir -p "$(dirname "$fish_func")"
+    cat > "$fish_func" <<EOF
+function cfwrp
+    if ip link show dev wgcf-profile >/dev/null 2>&1
+        echo "⤵️ Disconnecting from Cloudflare WARP..."
+        sudo wg-quick down $WGCF_PROFILE
+    else
+        echo "⤴️ Connecting to Cloudflare WARP..."
+        sudo wg-quick up $WGCF_PROFILE
+    end
+end
+EOF
+    echo "installed: $fish_func"
+
+    local zsh_func="$HOME/.config/shell/cfwrp.zsh"
+    mkdir -p "$(dirname "$zsh_func")"
+    cat > "$zsh_func" <<EOF
+cfwrp() {
+    if ip link show dev wgcf-profile >/dev/null 2>&1; then
+        echo "⤵️ Disconnecting from Cloudflare WARP..."
+        sudo wg-quick down $WGCF_PROFILE
+    else
+        echo "⤴️ Connecting to Cloudflare WARP..."
+        sudo wg-quick up $WGCF_PROFILE
+    fi
+}
+EOF
+    echo "installed: $zsh_func"
+    grep -qF "source $zsh_func" "$HOME/.zshrc" 2>/dev/null || \
+        echo "source $zsh_func" >> "$HOME/.zshrc"
 }
 
 echo "Shell Profile target: Zsh with Fish backend modules"
@@ -191,9 +291,15 @@ install_file "$REPO_DIR/nix-wallpaper-nineish-catppuccin-macchiato-alt.png" "$HO
 setup_v0wwa_package
 setup_nixos_pkg
 
+install_cfwrp_function
+
 echo
 echo "Rebuilding NixOS..."
 sudo nixos-rebuild switch
+
+echo
+echo "Registering wgcf profile (post-rebuild, now that wgcf is installed)..."
+setup_wgcf_profile
 
 echo
 echo "Done!"
