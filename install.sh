@@ -26,14 +26,10 @@ REQUIRED_PKGS=(
     networkmanagerapplet   # network manager applet for a systray icon
     zsh                   # primary interactive login shell
     nodejs                 # provides npm/npx; needed for esbuild toolchain
-    esbuild                # bundles v0wwa's src/*.ts -> dist/bar.js on launch
-    gtk4                    # v0wwa's window toolkit
-    gtk4-layer-shell         # v0wwa's layer-shell top-bar anchoring
-    webkitgtk_6_0            # v0wwa's WebView rendering engine (gi.require_version("WebKit","6.0"))
-    python3Packages.pygobject3   # GTK4/WebKit/Gtk4LayerShell GI bindings for python3
-    python3Packages.evdev         # v0ws-hotkeyd's keyboard event reading
-    # NOTE: verify the exact attr names above against your nixpkgs channel --
-    # webkitgtk_6_0 / gtk4-layer-shell naming has shifted across nixpkgs versions.
+    # NOTE: gtk4/gtk4-layer-shell/webkitgtk/pango/graphene/pygobject/evdev/esbuild
+    # are no longer declared here -- v0wwa.nix builds a self-contained wrapped
+    # package (see setup_v0wwa_package below) that bundles all of these with
+    # a correctly-populated GI_TYPELIB_PATH baked into the wrapper itself.
 )
 
 backup() {
@@ -159,50 +155,25 @@ EOF
             echo "configured: added imports block for packages.nix"
         fi
     fi
-
-    echo
-    echo "Testing NixOS configuration..."
-    if sudo nixos-rebuild build; then
-        echo "NixOS configuration is valid."
-    else
-        echo "WARNING: NixOS configuration failed to build."
-        return 1
-    fi
 }
 
-setup_v0wwa_service() {
-    local service_dir="$HOME/.config/systemd/user"
-    local service_file="$service_dir/v0wwa.service"
-    mkdir -p "$service_dir"
+setup_v0wwa_package() {
+    if [ ! -f /etc/NIXOS ] && [ ! -f /etc/nixos/configuration.nix ]; then
+        echo "skip: NixOS not detected, can't install v0wwa.nix"
+        return
+    fi
 
-    cat > "$service_file" <<EOF
-[Unit]
-Description=v0wwa bar
-After=graphical-session.target
-PartOf=graphical-session.target
+    local config="/etc/nixos/configuration.nix"
+    install_file "$REPO_DIR/v0wwa.nix" "/etc/nixos/v0wwa.nix" 2>/dev/null || {
+        sudo cp "$REPO_DIR/v0wwa.nix" /etc/nixos/v0wwa.nix
+        echo "installed: /etc/nixos/v0wwa.nix"
+    }
 
-[Service]
-Type=simple
-ExecStart=/bin/sh -c 'exec "\$HOME/launch-v0wwa.sh"'
-Restart=on-failure
-RestartSec=2
-
-[Install]
-WantedBy=graphical-session.target
-EOF
-
-    echo "installed: $service_file"
-    systemctl --user daemon-reload
-    systemctl --user enable v0wwa
-    systemctl --user restart v0wwa
-    echo "enabled: v0wwa systemd user service"
-
-    # Remove any old spawn-at-startup lines for v0wwa from niri config
-    local niri_config="$HOME/.config/niri/config.kdl"
-    if [ -f "$niri_config" ]; then
-        backup "$niri_config"
-        sed -i '/spawn-at-startup.*v0wwa\|spawn-at-startup.*launch-v0wwa\|spawn-at-startup.*vowwa/d' "$niri_config"
-        echo "cleaned: removed v0wwa spawn-at-startup from niri config"
+    if grep -qF './v0wwa.nix' "$config"; then
+        echo "configuration.nix already imports v0wwa.nix"
+    else
+        sudo sed -i '/imports = \[/a\  ./v0wwa.nix' "$config"
+        echo "configured: configuration.nix imports v0wwa.nix"
     fi
 }
 
@@ -234,7 +205,8 @@ install_dir "$REPO_DIR/config/v0wwa" "$HOME/.config/v0wwa"
 # 4. Python Helper Scripts
 install_file "$REPO_DIR/catppuccinize.py" "$HOME/.config/shell/catppuccinize.py"
 
-# 4b. v0wwa and friends -- install to ~/ and chmod +x
+# 4b. v0wwa and friends -- source files live at ~/, actual runtime env comes
+# from the v0wwa.nix package (wraps python3 with GI_TYPELIB_PATH baked in)
 install_file "$REPO_DIR/v0wwa.py" "$HOME/v0wwa.py"
 chmod +x "$HOME/v0wwa.py"
 echo "made executable: ~/v0wwa.py"
@@ -246,11 +218,6 @@ echo "made executable: ~/v0hv.py"
 install_file "$REPO_DIR/v0ws-hotkeyd.py" "$HOME/v0ws-hotkeyd.py"
 chmod +x "$HOME/v0ws-hotkeyd.py"
 echo "made executable: ~/v0ws-hotkeyd.py"
-
-# 4c. launch-v0wwa.sh -- sources full user env before spawning v0wwa
-install_file "$REPO_DIR/launch-v0wwa.sh" "$HOME/launch-v0wwa.sh"
-chmod +x "$HOME/launch-v0wwa.sh"
-echo "made executable: ~/launch-v0wwa.sh"
 
 # 5. Wallpaper setup
 mkdir -p "$HOME/Pictures/wallpaper"
@@ -264,11 +231,22 @@ else
     echo "skip: swaybg already configured or niri config missing"
 fi
 
-# 5b. v0wwa systemd user service -- replaces spawn-at-startup
-setup_v0wwa_service
+if [ -f "$NIRI_CONFIG" ] && ! grep -qF 'v0wwa' "$NIRI_CONFIG"; then
+    echo 'spawn-at-startup "v0wwa"' >> "$NIRI_CONFIG"
+    echo "configured: v0wwa autostart in niri"
+else
+    echo "skip: v0wwa already configured or niri config missing"
+fi
 
-# 6. Declarative package generation & validation
+# 5b. v0wwa.nix -- Nix package providing the wrapped v0wwa binary
+setup_v0wwa_package
+
+# 6. Declarative package generation & rebuild
 setup_nixos_pkg
+
+echo
+echo "Rebuilding NixOS to apply v0wwa.nix and packages.nix..."
+sudo nixos-rebuild switch
 
 echo
 echo "Done! Fish packages and configurations have been successfully linked."
