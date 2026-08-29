@@ -220,6 +220,5 @@ binds {
     XF86MonBrightnessUp   allow-when-locked=true { spawn "brightnessctl" "set" "10%+"; }
     XF86MonBrightnessDown allow-when-locked=true { spawn "brightnessctl" "set" "10%-"; }
 }
-spawn-at-startup "sh" "-c" "$HOME/launch-v0wwa.sh"
 spawn-at-startup "xwayland-satellite"
 spawn-at-startup "nm-applet"
