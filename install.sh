@@ -170,6 +170,42 @@ EOF
     fi
 }
 
+setup_v0wwa_service() {
+    local service_dir="$HOME/.config/systemd/user"
+    local service_file="$service_dir/v0wwa.service"
+    mkdir -p "$service_dir"
+
+    cat > "$service_file" <<EOF
+[Unit]
+Description=v0wwa bar
+After=graphical-session.target
+PartOf=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=/bin/sh -c 'exec "\$HOME/launch-v0wwa.sh"'
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=graphical-session.target
+EOF
+
+    echo "installed: $service_file"
+    systemctl --user daemon-reload
+    systemctl --user enable v0wwa
+    systemctl --user restart v0wwa
+    echo "enabled: v0wwa systemd user service"
+
+    # Remove any old spawn-at-startup lines for v0wwa from niri config
+    local niri_config="$HOME/.config/niri/config.kdl"
+    if [ -f "$niri_config" ]; then
+        backup "$niri_config"
+        sed -i '/spawn-at-startup.*v0wwa\|spawn-at-startup.*launch-v0wwa\|spawn-at-startup.*vowwa/d' "$niri_config"
+        echo "cleaned: removed v0wwa spawn-at-startup from niri config"
+    fi
+}
+
 echo "Shell Profile target: Zsh with Fish backend modules"
 echo
 
@@ -192,8 +228,7 @@ install_dir "$REPO_DIR/config/fuzzel"    "$HOME/.config/fuzzel"
 install_dir "$REPO_DIR/config/niri"      "$HOME/.config/niri"
 install_dir "$REPO_DIR/config/mako"      "$HOME/.config/mako"
 
-# 3b. Install v0wwa bar instance configs (main/second/final -- whatever's
-# tracked in the repo under config/v0wwa) to ~/.config/v0wwa
+# 3b. Install v0wwa bar instance configs
 install_dir "$REPO_DIR/config/v0wwa" "$HOME/.config/v0wwa"
 
 # 4. Python Helper Scripts
@@ -212,8 +247,7 @@ install_file "$REPO_DIR/v0ws-hotkeyd.py" "$HOME/v0ws-hotkeyd.py"
 chmod +x "$HOME/v0ws-hotkeyd.py"
 echo "made executable: ~/v0ws-hotkeyd.py"
 
-# 4c. launch-v0wwa.sh -- sources full user env before spawning v0wwa,
-# needed because niri spawn-at-startup doesn't expand ~ or source profiles
+# 4c. launch-v0wwa.sh -- sources full user env before spawning v0wwa
 install_file "$REPO_DIR/launch-v0wwa.sh" "$HOME/launch-v0wwa.sh"
 chmod +x "$HOME/launch-v0wwa.sh"
 echo "made executable: ~/launch-v0wwa.sh"
@@ -230,12 +264,8 @@ else
     echo "skip: swaybg already configured or niri config missing"
 fi
 
-if [ -f "$NIRI_CONFIG" ] && ! grep -qF 'launch-v0wwa' "$NIRI_CONFIG"; then
-    echo 'spawn-at-startup "'"$HOME"'/launch-v0wwa.sh"' >> "$NIRI_CONFIG"
-    echo "configured: launch-v0wwa.sh autostart in niri"
-else
-    echo "skip: launch-v0wwa already configured or niri config missing"
-fi
+# 5b. v0wwa systemd user service -- replaces spawn-at-startup
+setup_v0wwa_service
 
 # 6. Declarative package generation & validation
 setup_nixos_pkg
