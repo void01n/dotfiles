@@ -220,6 +220,6 @@ binds {
     XF86MonBrightnessUp   allow-when-locked=true { spawn "brightnessctl" "set" "10%+"; }
     XF86MonBrightnessDown allow-when-locked=true { spawn "brightnessctl" "set" "10%-"; }
 }
-spawn-at-startup "bash" "-c" "python3 ~/v0wwa.py ~/.config/v0wwa/main"
+spawn-at-startup "bash" "-c" "~/launch-v0wwa.sh"
 spawn-at-startup "xwayland-satellite"
 spawn-at-startup "nm-applet"
