@@ -238,7 +238,7 @@ this makes the installer safe to run repeatedly while keeping previous configura
 the environment follows the Catppuccin Macchiato palette across:
 * 🪟 niri
 * 🖥️ ghostty
-* 📊 waybar
+* 📊 v0wwa
 * 🚀 fuzzel
 * 🐚 Zsh
 * 🐟 Fish
