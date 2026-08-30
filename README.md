@@ -35,6 +35,7 @@ a minimal, fast, and highly customized nixos rice built around niri, ghostty, wa
 ├── install.sh           # ⚡ nixos deployment script
 ├── img.png              # 🖼️ desktop screenshot
 └── LICENSE
+and a few more
 ```
 
 ## 📥 installation
