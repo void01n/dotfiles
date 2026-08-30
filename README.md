@@ -1,6 +1,6 @@
 # 🌌 void01n's dotfiles
 
-a minimal, fast, and highly customized nixos rice built around niri, ghostty, waybar, and a hybrid zsh + fish shell environment.
+a minimal, fast, and highly customized nixos rice built around niri, ghostty, v0wwa, and a hybrid zsh + fish shell environment.
 
 [join my discord!](https://discord.gg/WXFYPAge7c)
 
