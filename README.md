@@ -2,6 +2,8 @@
 
 a minimal, fast, and highly customized nixos rice built around niri, ghostty, waybar, and a hybrid zsh + fish shell environment.
 
+[join my discord!](https://discord.gg/WXFYPAge7c)
+
 ## ✨ features
 
 * **🪟 window manager** — niri for smooth, scrollable tiling across an infinite canvas.
@@ -272,4 +274,4 @@ feel free to fork, modify, and make it your own. if you find something broken or
 
 ## 💬 discord
 
-[Join here!](https://discord.gg/WXFYPAge7c)
+[join here!](https://discord.gg/WXFYPAge7c)
