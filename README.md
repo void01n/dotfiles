@@ -7,7 +7,7 @@ a minimal, fast, and highly customized nixos rice built around niri, ghostty, wa
 * **🪟 window manager** — niri for smooth, scrollable tiling across an infinite canvas.
 * **🖥️ terminal** — ghostty for fast GPU-accelerated rendering and clean font handling.
 * **🚀 application launcher** — fuzzel for a lightweight native Wayland application picker.
-* **📊 status bar** — waybar with custom telemetry, system information, and power controls.
+* **📊 status bar** — v0wwa.
 * **🐚 shell** — Zsh as the primary interactive shell, enhanced with Oh My Zsh, autosuggestions, syntax highlighting, and Git integration.
 * **🐟 fish utilities** — Fish handles package-management helpers and supporting shell functionality.
 * **🧭 navigation** — zoxide for fast, intelligent directory jumping.
@@ -26,7 +26,7 @@ a minimal, fast, and highly customized nixos rice built around niri, ghostty, wa
 │   ├── fuzzel/          # 🚀 application launcher
 │   ├── ghostty/         # 🖥️ terminal configuration
 │   ├── niri/            # 🪟 window manager configuration
-│   └── waybar/          # 📊 status bar and styling
+│   └── v0wwa/           # 📊 status bar and styling
 ├── fish/                # 🐟 fish modules and package helpers
 ├── .zshrc               # 🐚 interactive zsh configuration
 ├── catppuccinize.py     # 🎨 theme transformation utility
