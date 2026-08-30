@@ -273,5 +273,3 @@ feel free to fork, modify, and make it your own. if you find something broken or
 ## 💬 discord
 
 [Join here!](https://discord.gg/WXFYPAge7c)
-
-https://discord.gg/WXFYPAge7c
