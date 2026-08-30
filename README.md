@@ -271,5 +271,7 @@ created by **void01n**.
 feel free to fork, modify, and make it your own. if you find something broken or have an improvement, open an issue or pull request. 🚀
 
 ## 💬 discord
-[discord]("https://discord.gg/WXFYPAge7c")
+
+[Join here!](https://discord.gg/WXFYPAge7c)
+
 https://discord.gg/WXFYPAge7c
