@@ -9,7 +9,7 @@ a minimal, fast, and highly customized nixos rice built around niri, ghostty, wa
 * **🪟 window manager** — niri for smooth, scrollable tiling across an infinite canvas.
 * **🖥️ terminal** — ghostty for fast GPU-accelerated rendering and clean font handling.
 * **🚀 application launcher** — fuzzel for a lightweight native Wayland application picker.
-* **📊 status bar** — v0wwa.
+* **📊 status bar\*\*** — v0wwa, a GTK4 + gtk4-layer-shell status bar host with multi-monitor support and live system state.
 * **🐚 shell** — Zsh as the primary interactive shell, enhanced with Oh My Zsh, autosuggestions, syntax highlighting, and Git integration.
 * **🐟 fish utilities** — Fish handles package-management helpers and supporting shell functionality.
 * **🧭 navigation** — zoxide for fast, intelligent directory jumping.
