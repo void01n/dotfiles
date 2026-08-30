@@ -264,12 +264,12 @@ this setup is built around a few simple ideas:
 
 the goal isn't to build the most complicated rice possible. it's to build a desktop that feels fast, cohesive, predictable, and distinctly mine.
 
-## 🖼️ screenshots
-
-*(Add your screenshots here)*
-
 ## ❤️ credits
 
 created by **void01n**.
 
 feel free to fork, modify, and make it your own. if you find something broken or have an improvement, open an issue or pull request. 🚀
+
+## 💬 discord
+[discord]("https://discord.gg/WXFYPAge7c")
+https://discord.gg/WXFYPAge7c
